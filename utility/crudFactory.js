@@ -22,16 +22,16 @@ const createAllFactory=function(ElementModel){
         try{
             const elementDetails = req.body;
             const element=await ElementModel.create(elementDetails);
-            console.log(element);
+            
             res.status(200).json({
                 status:"success",
                 message:"got response from post method",
-                user
+                element
             })
         }catch(err){
             res.status(404).json({
                 status:"failure",
-                message:err.message
+                message:`failure creating element ${err.message}`
             })
         }
         

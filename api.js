@@ -1,50 +1,48 @@
-// import express
-const express = require('express');
-// syntax -> used to create ann express framework
-const app = express();
-// this line is the reason that the server is working
+const express = require("express"); //to create server
+require('dotenv').config(); //to use environment variables
+const mongoose = require("mongoose"); //to connect to mongodb database
+const {PORT,db_user,db_password}=process.env   
+const app = express(); 
+app.use(express.json());// to get data from user in json format
 
-/********
- * app.use -> a method  -> express
- * we can pass a handler/cb fn ->
- * 1. req : obj representing request
- * 2. res : obj representing response
- * 3. this method irrespective of the call done by either get/post/etc this will respond
- * *************/
-// this is user defined middleware
-
-//to get the details of items from request
-// it is a inbuilt middleware -> to add data coming in body of HTTP request to req.body
-app.use(express.json());
+const UserRouter=require("./router/userRouter");
+const ProductRouter=require("./router/productRouter");
 
 
-app.post("/api/user",function(req,res){
-    console.log("I am inside post method",req.body);
+const dbUrl=`mongodb+srv://${db_user}:${db_password}@cluster0.z2cr8.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`
+ //connect to mongodb database
+ //replace db_user and db_password with your own mongodb credentials
+ //you can create a new database in mongodb Atlas and replace the cluster0 with your own cluster name
+
+//connect to mongodb database using 
+mongoose.connect(dbUrl).then(function(connection){ 
+    console.log("connection successful");
+}).catch(function(err){ console.log(err)});
+
+
+app.use("/api/user",UserRouter);
+app.use("/api/product",ProductRouter);
+
+app.use("/",function(req,res){
+    const value = req.query
     res.status(200).json({
         status:"success",
-        message:"sending response from post method"
+        message:value
+    })
+});
+
+
+
+//if above routes are not found then this will be executed
+app.use(function(req,res){
+    res.status(200).json({
+        status:"failure",
+        message:"404 Page Not Found"
     })
 })
 
 
-
-// when someone makes a get request on the route /api/user , the handler will be executed
-app.get("/api/user",function (req,res){
-    console.log("I am inside get method");
-    res.status(200).json({
-        status:"success",
-        message:"sending response from get method",
-    })
+//listen to the port
+app.listen(PORT,function(req,res){
+    console.log(`server is running at ${PORT} port`);
 })
-
-
-// process.env.PORT => this searches for .env file in the code server itself
-//node --env-file PORT // command to find the details in env file of project
-//.env files are used in the projects to just store important details -> Port,api-keys
-const port = process.env.PORT || 3000;
-
-// server -> run on a port
-app.listen(port,function(){
-    console.log(`Server is listening at ${port}`);
-})
-
